@@ -264,10 +264,10 @@ function App() {
   // Mock weather data with translations
   const getWeatherData = (): WeatherData => {
     const locations = {
-      hi: "दिल्ली, भारत",
+      hi: "कृष्णन कोविल, भारत",
       en: "krishnankoil, India",
-      te: "ఢిల్లీ, భారతదేశం",
-      ta: "டெல்லி, இந்தியா"
+      te: "కృష్ణన్ కోవిల్, భారతదేశం",
+      ta: "கிருஷ்ணன் கோவில் , இந்தியா"
     };
 
     const descriptions = {
