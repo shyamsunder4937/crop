@@ -237,6 +237,9 @@ function App() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [userLocation, setUserLocation] = useState<string>('');
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [realWeatherData, setRealWeatherData] = useState<any>(null);
 
   const t = translations[language];
 
@@ -261,20 +264,128 @@ function App() {
     setMessages([createInitialMessage(language)]);
   }, [language]);
 
-  // Mock weather data with translations
+  // Automatically get location on component mount
+  useEffect(() => {
+    getPresentLocation();
+  }, []);
+
+  // Get user's present location and fetch real weather data
+  const getPresentLocation = () => {
+    setLocationLoading(true);
+    
+    if (!navigator.geolocation) {
+      alert(language === 'hi' ? 'आपका ब्राउज़र जियोलोकेशन का समर्थन नहीं करता' : language === 'en' ? 'Your browser does not support geolocation' : language === 'te' ? 'మీ బ్రౌజర్ జియోలొకేషన్‌కు మద్దతు ఇవ్వదు' : 'உங்கள் உலாவி புவிஇருப்பிடத்தை ஆதரிக்கவில்லை');
+      setLocationLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Fetch location name
+          const geoResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=${language}`
+          );
+          const geoData = await geoResponse.json();
+          
+          // Prioritize village/town/suburb over city for more accurate location
+          const locationName = 
+            geoData.address?.village || 
+            geoData.address?.town || 
+            geoData.address?.suburb ||
+            geoData.address?.hamlet ||
+            geoData.address?.neighbourhood ||
+            geoData.address?.city || 
+            geoData.address?.county ||
+            geoData.address?.state || 
+            'Unknown Location';
+          const country = geoData.address?.country || 'India';
+          
+          setUserLocation(`${locationName}, ${country}`);
+          
+          // Fetch real weather data from Open-Meteo API (free, no API key required)
+          const weatherResponse = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`
+          );
+          const weatherData = await weatherResponse.json();
+          
+          setRealWeatherData({
+            current: {
+              temperature: Math.round(weatherData.current.temperature_2m),
+              humidity: weatherData.current.relative_humidity_2m,
+              windSpeed: Math.round(weatherData.current.wind_speed_10m),
+              weatherCode: weatherData.current.weather_code
+            },
+            daily: weatherData.daily
+          });
+          
+        } catch (error) {
+          console.error('Error fetching location or weather:', error);
+          setUserLocation(`${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E`);
+          alert(language === 'hi' ? 'मौसम डेटा प्राप्त करने में त्रुटि' : language === 'en' ? 'Error fetching weather data' : language === 'te' ? 'వాతావరణ డేటా పొందడంలో లోపం' : 'வானிலை தரவைப் பெறுவதில் பிழை');
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        alert(language === 'hi' ? 'स्थान प्राप्त करने में त्रुटि। कृपया स्थान अनुमति सक्षम करें।' : language === 'en' ? 'Error getting location. Please enable location permission.' : language === 'te' ? 'స్థానం పొందడంలో లోపం. దయచేసి స్థాన అనుమతిని ప్రారంభించండి.' : 'இருப்பிடத்தைப் பெறுவதில் பிழை. தயவுசெய்து இருப்பிட அனுமதியை இயக்கவும்.');
+        setLocationLoading(false);
+      }
+    );
+  };
+  
+  // Convert weather code to description
+  const getWeatherDescription = (code: number): string => {
+    const descriptions: { [key: string]: { hi: string; en: string; te: string; ta: string } } = {
+      '0': { hi: 'साफ आसमान', en: 'Clear sky', te: 'స్పష్టమైన ఆకాశం', ta: 'தெளிவான வானம்' },
+      '1': { hi: 'मुख्यतः साफ', en: 'Mainly clear', te: 'ప్రధానంగా స్పష్టం', ta: 'முக்கியமாக தெளிவு' },
+      '2': { hi: 'आंशिक बादल', en: 'Partly cloudy', te: 'పాక్షికంగా మేఘావృతం', ta: 'பகுதி மேகமூட்டம்' },
+      '3': { hi: 'बादल', en: 'Overcast', te: 'మేఘావృతం', ta: 'மேகமூட்டம்' },
+      '45': { hi: 'कोहरा', en: 'Fog', te: 'పొగమంచు', ta: 'மூடுபனி' },
+      '48': { hi: 'जमा कोहरा', en: 'Depositing rime fog', te: 'మంచు పొగమంచు', ta: 'உறைபனி மூடுபனி' },
+      '51': { hi: 'हल्की बूंदाबांदी', en: 'Light drizzle', te: 'తేలికపాటి చినుకులు', ta: 'லேசான தூறல்' },
+      '53': { hi: 'बूंदाबांदी', en: 'Moderate drizzle', te: 'మితమైన చినుకులు', ta: 'மிதமான தூறல்' },
+      '55': { hi: 'घनी बूंदाबांदी', en: 'Dense drizzle', te: 'దట్టమైన చినుకులు', ta: 'அடர்த்தியான தூறல்' },
+      '61': { hi: 'हल्की बारिश', en: 'Slight rain', te: 'తేలికపాటి వర్షం', ta: 'லேசான மழை' },
+      '63': { hi: 'बारिश', en: 'Moderate rain', te: 'మితమైన వర్షం', ta: 'மிதமான மழை' },
+      '65': { hi: 'भारी बारिश', en: 'Heavy rain', te: 'భారీ వర్షం', ta: 'கனமழை' },
+      '71': { hi: 'हल्की बर्फबारी', en: 'Slight snow', te: 'తేలికపాటి మంచు', ta: 'லேசான பனி' },
+      '73': { hi: 'बर्फबारी', en: 'Moderate snow', te: 'మితమైన మంచు', ta: 'மிதமான பனி' },
+      '75': { hi: 'भारी बर्फबारी', en: 'Heavy snow', te: 'భారీ మంచు', ta: 'கனமான பனி' },
+      '80': { hi: 'हल्की बौछार', en: 'Slight rain showers', te: 'తేలికపాటి వర్షపు జల్లులు', ta: 'லேசான மழை பொழிவு' },
+      '81': { hi: 'बौछार', en: 'Moderate rain showers', te: 'మితమైన వర్షపు జల్లులు', ta: 'மிதமான மழை பொழிவு' },
+      '82': { hi: 'भारी बौछार', en: 'Violent rain showers', te: 'భారీ వర్షపు జల్లులు', ta: 'கடுமையான மழை பொழிவு' },
+      '95': { hi: 'तूफान', en: 'Thunderstorm', te: 'ఉరుములతో కూడిన వర్షం', ta: 'இடியுடன் கூடிய மழை' },
+      '96': { hi: 'ओलावृष्टि के साथ तूफान', en: 'Thunderstorm with hail', te: 'వడగళ్ళతో ఉరుములు', ta: 'ஆலங்கட்டி மழையுடன் இடி' },
+      '99': { hi: 'भारी ओलावृष्टि के साथ तूफान', en: 'Thunderstorm with heavy hail', te: 'భారీ వడగళ్ళతో ఉరుములు', ta: 'கடுமையான ஆலங்கட்டி மழையுடன் இடி' }
+    };
+    
+    const codeStr = code.toString();
+    return descriptions[codeStr]?.[language] || descriptions['0'][language];
+  };
+  
+  // Get weather icon based on code
+  const getWeatherIconFromCode = (code: number): string => {
+    if (code === 0 || code === 1) return 'sunny';
+    if (code === 2) return 'partly-cloudy';
+    if (code === 3) return 'cloudy';
+    if (code >= 51 && code <= 65) return 'rainy';
+    if (code >= 71 && code <= 77) return 'snowy';
+    if (code >= 80 && code <= 82) return 'rainy';
+    if (code >= 95) return 'stormy';
+    return 'clear';
+  };
+
+  // Get weather data (real or mock)
   const getWeatherData = (): WeatherData => {
-    const locations = {
+    const defaultLocations = {
       hi: "कृष्णन कोविल, भारत",
       en: "krishnankoil, India",
       te: "కృష్ణన్ కోవిల్, భారతదేశం",
       ta: "கிருஷ்ணன் கோவில் , இந்தியா"
-    };
-
-    const descriptions = {
-      hi: ["धूप", "बादल", "बारिश", "तूफान", "साफ"],
-      en: ["Sunny", "Cloudy", "Rainy", "Stormy", "Clear"],
-      te: ["ఎండ", "మేఘాలు", "వర్షం", "తుఫాను", "స్పష్టం"],
-      ta: ["வெயில்", "மேகமூட்டம்", "மழை", "புயல்", "தெளிவு"]
     };
 
     const days = {
@@ -284,8 +395,51 @@ function App() {
       ta: ["இன்று", "நாளை", "நாளை மறுநாள்", "வெள்ளி", "சனி"]
     };
 
+    // If we have real weather data, use it
+    if (realWeatherData) {
+      const currentWeatherCode = realWeatherData.current.weatherCode;
+      const currentDescription = getWeatherDescription(currentWeatherCode);
+      const currentIcon = getWeatherIconFromCode(currentWeatherCode);
+      
+      return {
+        location: userLocation || defaultLocations[language],
+        current: {
+          temperature: realWeatherData.current.temperature,
+          description: currentDescription,
+          humidity: realWeatherData.current.humidity,
+          windSpeed: realWeatherData.current.windSpeed,
+          icon: currentIcon
+        },
+        forecast: days[language].map((day, index) => {
+          const weatherCode = realWeatherData.daily.weather_code[index];
+          return {
+            day,
+            high: Math.round(realWeatherData.daily.temperature_2m_max[index]),
+            low: Math.round(realWeatherData.daily.temperature_2m_min[index]),
+            description: getWeatherDescription(weatherCode),
+            icon: getWeatherIconFromCode(weatherCode)
+          };
+        }),
+        alerts: [
+          {
+            type: language === 'hi' ? "मानसून चेतावनी" : language === 'en' ? "Monsoon Warning" : language === 'te' ? "వర్షాకాల హెచ్చరిక" : "பருவமழை எச்சரிக்கை",
+            message: language === 'hi' ? "अगले 48 घंटों में भारी बारिश की संभावना" : language === 'en' ? "Heavy rainfall expected in next 48 hours" : language === 'te' ? "రాబోయే 48 గంటల్లో భారీ వర్షాలు" : "அடுத்த 48 மணி நேரத்தில் கனமழை",
+            severity: "high" as const
+          }
+        ]
+      };
+    }
+
+    // Default mock data
+    const descriptions = {
+      hi: ["धूप", "बादल", "बारिश", "तूफान", "साफ"],
+      en: ["Sunny", "Cloudy", "Rainy", "Stormy", "Clear"],
+      te: ["ఎండ", "మేఘాలు", "వర్షం", "తుఫాను", "స్పష్టం"],
+      ta: ["வெயில்", "மேகமூட்டம்", "மழை", "புயல்", "தெளிவு"]
+    };
+
     return {
-      location: locations[language],
+      location: userLocation || defaultLocations[language],
       current: {
         temperature: 28,
         description: descriptions[language][0],
@@ -529,11 +683,28 @@ function App() {
             <p className="opacity-90 mt-1">{t.goodDay}</p>
           </div>
           <div className="text-right">
-            <div className="flex items-center text-sm opacity-90">
+            <div className="flex items-center text-sm opacity-90 mb-2">
               <MapPin className="w-4 h-4 mr-1" />
               {weatherData.location}
             </div>
-            <div className="text-2xl font-bold mt-1">
+            <button
+              onClick={getPresentLocation}
+              disabled={locationLoading}
+              className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full transition duration-200 flex items-center mb-2 disabled:opacity-50"
+            >
+              {locationLoading ? (
+                <>
+                  <Loader className="w-3 h-3 mr-1 animate-spin" />
+                  {language === 'hi' ? 'प्राप्त कर रहे हैं...' : language === 'en' ? 'Getting...' : language === 'te' ? 'పొందుతోంది...' : 'பெறுகிறது...'}
+                </>
+              ) : (
+                <>
+                  <MapPin className="w-3 h-3 mr-1" />
+                  {language === 'hi' ? 'वर्तमान स्थान' : language === 'en' ? 'Get Location' : language === 'te' ? 'ప్రస్తుత స్థానం' : 'தற்போதைய இடம்'}
+                </>
+              )}
+            </button>
+            <div className="text-2xl font-bold">
               {weatherData.current.temperature}°C
             </div>
           </div>
@@ -747,11 +918,28 @@ function App() {
       {/* Current Weather */}
       <div className="bg-gradient-to-br from-blue-400 to-blue-600 text-white p-6 rounded-lg shadow-lg">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center mb-2">
               <MapPin className="w-5 h-5 mr-2" />
               <span className="text-lg">{weatherData.location}</span>
             </div>
+            <button
+              onClick={getPresentLocation}
+              disabled={locationLoading}
+              className="text-xs px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full transition duration-200 flex items-center mb-3 disabled:opacity-50"
+            >
+              {locationLoading ? (
+                <>
+                  <Loader className="w-3 h-3 mr-1 animate-spin" />
+                  {language === 'hi' ? 'प्राप्त कर रहे हैं...' : language === 'en' ? 'Getting...' : language === 'te' ? 'పొందుతోంది...' : 'பெறுகிறது...'}
+                </>
+              ) : (
+                <>
+                  <MapPin className="w-3 h-3 mr-1" />
+                  {language === 'hi' ? 'वर्तमान स्थान प्राप्त करें' : language === 'en' ? 'Get Present Location' : language === 'te' ? 'ప్రస్తుత స్థానం పొందండి' : 'தற்போதைய இடத்தைப் பெறுங்கள்'}
+                </>
+              )}
+            </button>
             <div className="text-4xl font-bold mb-2">{weatherData.current.temperature}°C</div>
             <p className="text-blue-100">{weatherData.current.description}</p>
           </div>
