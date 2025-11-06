@@ -265,7 +265,7 @@ function App() {
   const getWeatherData = (): WeatherData => {
     const locations = {
       hi: "दिल्ली, भारत",
-      en: "Delhi, India",
+      en: "krishnankoil, India",
       te: "ఢిల్లీ, భారతదేశం",
       ta: "டெல்லி, இந்தியா"
     };
