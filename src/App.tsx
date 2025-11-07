@@ -497,6 +497,13 @@ function App() {
     { id: 'advisory', name: t.tabs.advisory, icon: Bell }
   ];
 
+  // Prevent invalid characters in number inputs
+  const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -505,79 +512,370 @@ function App() {
       const crops = {
         hi: [
           {
+            crop: "चावल",
+            confidence: 90,
+            yield: 55,
+            profit: 32000,
+            fertilizer: ["यूरिया 150 किग्रा/हेक्टेयर", "SSP 125 किग्रा/हेक्टेयर", "MOP 50 किग्रा/हेक्टेयर"],
+            tips: ["पानी की उपलब्धता सुनिश्चित करें", "रोपाई जून-जुलाई में करें", "खरपतवार नियंत्रण जरूरी"]
+          },
+          {
             crop: "गेहूं",
             confidence: 92,
             yield: 45,
-            profit: 25000,
+            profit: 28000,
             fertilizer: ["यूरिया 120 किग्रा/हेक्टेयर", "DAP 100 किग्रा/हेक्टेयर", "MOP 60 किग्रा/हेक्टेयर"],
             tips: ["बुवाई नवंबर के दूसरे सप्ताह में करें", "सिंचाई 21 दिन के अंतराल पर करें", "कटाई अप्रैल में करें"]
           },
           {
-            crop: "चावल",
-            confidence: 87,
-            yield: 55,
+            crop: "कपास",
+            confidence: 85,
+            yield: 25,
+            profit: 45000,
+            fertilizer: ["यूरिया 100 किग्रा/हेक्टेयर", "DAP 80 किग्रा/हेक्टेयर", "MOP 80 किग्रा/हेक्टेयर"],
+            tips: ["मई-जून में बुवाई करें", "कीट नियंत्रण आवश्यक", "नियमित सिंचाई करें"]
+          },
+          {
+            crop: "गन्ना",
+            confidence: 88,
+            yield: 700,
+            profit: 55000,
+            fertilizer: ["यूरिया 200 किग्रा/हेक्टेयर", "SSP 150 किग्रा/हेक्टेयर", "MOP 100 किग्रा/हेक्टेयर"],
+            tips: ["फरवरी-मार्च में रोपण करें", "पर्याप्त पानी की आवश्यकता", "12-14 महीने में कटाई"]
+          },
+          {
+            crop: "मक्का",
+            confidence: 86,
+            yield: 50,
+            profit: 26000,
+            fertilizer: ["यूरिया 130 किग्रा/हेक्टेयर", "DAP 90 किग्रा/हेक्टेयर", "MOP 40 किग्रा/हेक्टेयर"],
+            tips: ["जून-जुलाई में बुवाई करें", "अच्छी जल निकासी जरूरी", "3-4 महीने में कटाई"]
+          },
+          {
+            crop: "मूंगफली",
+            confidence: 84,
+            yield: 30,
+            profit: 35000,
+            fertilizer: ["यूरिया 50 किग्रा/हेक्टेयर", "SSP 100 किग्रा/हेक्टेयर", "MOP 50 किग्रा/हेक्टेयर"],
+            tips: ["जून-जुलाई में बुवाई करें", "हल्की मिट्टी उपयुक्त", "4-5 महीने में कटाई"]
+          },
+          {
+            crop: "चाय",
+            confidence: 82,
+            yield: 20,
+            profit: 60000,
+            fertilizer: ["यूरिया 80 किग्रा/हेक्टेयर", "SSP 60 किग्रा/हेक्टेयर", "MOP 40 किग्रा/हेक्टेयर"],
+            tips: ["अम्लीय मिट्टी आवश्यक", "नियमित छंटाई करें", "साल भर में 3-4 बार तुड़ाई"]
+          },
+          {
+            crop: "जूट",
+            confidence: 83,
+            yield: 35,
             profit: 30000,
-            fertilizer: ["यूरिया 150 किग्रा/हेक्टेयर", "SSP 125 किग्रा/हेक्टेयर", "MOP 50 किग्रा/हेक्टेयर"],
-            tips: ["पानी की उपलब्धता सुनिश्चित करें", "रोपाई जुलाई में करें", "खरपतवार नियंत्रण जरूरी"]
+            fertilizer: ["यूरिया 100 किग्रा/हेक्टेयर", "SSP 80 किग्रा/हेक्टेयर", "MOP 30 किग्रा/हेक्टेयर"],
+            tips: ["मार्च-अप्रैल में बुवाई करें", "उच्च आर्द्रता आवश्यक", "4-5 महीने में कटाई"]
+          },
+          {
+            crop: "आलू",
+            confidence: 89,
+            yield: 250,
+            profit: 40000,
+            fertilizer: ["यूरिया 100 किग्रा/हेक्टेयर", "DAP 120 किग्रा/हेक्टेयर", "MOP 80 किग्रा/हेक्टेयर"],
+            tips: ["अक्टूबर-नवंबर में रोपण करें", "ठंडी जलवायु उपयुक्त", "3-4 महीने में खुदाई"]
+          },
+          {
+            crop: "टमाटर",
+            confidence: 87,
+            yield: 400,
+            profit: 50000,
+            fertilizer: ["यूरिया 90 किग्रा/हेक्टेयर", "DAP 100 किग्रा/हेक्टेयर", "MOP 70 किग्रा/हेक्टेयर"],
+            tips: ["पौध रोपण फरवरी या जुलाई में करें", "नियमित सिंचाई आवश्यक", "3-4 महीने में तुड़ाई"]
           }
         ],
         en: [
           {
+            crop: "Rice",
+            confidence: 90,
+            yield: 55,
+            profit: 32000,
+            fertilizer: ["Urea 150 kg/hectare", "SSP 125 kg/hectare", "MOP 50 kg/hectare"],
+            tips: ["Ensure water availability", "Transplant in June-July", "Weed control is essential"]
+          },
+          {
             crop: "Wheat",
             confidence: 92,
             yield: 45,
-            profit: 25000,
+            profit: 28000,
             fertilizer: ["Urea 120 kg/hectare", "DAP 100 kg/hectare", "MOP 60 kg/hectare"],
             tips: ["Sow in second week of November", "Irrigate at 21-day intervals", "Harvest in April"]
           },
           {
-            crop: "Rice",
-            confidence: 87,
-            yield: 55,
+            crop: "Cotton",
+            confidence: 85,
+            yield: 25,
+            profit: 45000,
+            fertilizer: ["Urea 100 kg/hectare", "DAP 80 kg/hectare", "MOP 80 kg/hectare"],
+            tips: ["Sow in May-June", "Pest control essential", "Regular irrigation needed"]
+          },
+          {
+            crop: "Sugarcane",
+            confidence: 88,
+            yield: 700,
+            profit: 55000,
+            fertilizer: ["Urea 200 kg/hectare", "SSP 150 kg/hectare", "MOP 100 kg/hectare"],
+            tips: ["Plant in February-March", "Requires adequate water", "Harvest in 12-14 months"]
+          },
+          {
+            crop: "Maize",
+            confidence: 86,
+            yield: 50,
+            profit: 26000,
+            fertilizer: ["Urea 130 kg/hectare", "DAP 90 kg/hectare", "MOP 40 kg/hectare"],
+            tips: ["Sow in June-July", "Good drainage required", "Harvest in 3-4 months"]
+          },
+          {
+            crop: "Groundnut",
+            confidence: 84,
+            yield: 30,
+            profit: 35000,
+            fertilizer: ["Urea 50 kg/hectare", "SSP 100 kg/hectare", "MOP 50 kg/hectare"],
+            tips: ["Sow in June-July", "Light soil suitable", "Harvest in 4-5 months"]
+          },
+          {
+            crop: "Tea",
+            confidence: 82,
+            yield: 20,
+            profit: 60000,
+            fertilizer: ["Urea 80 kg/hectare", "SSP 60 kg/hectare", "MOP 40 kg/hectare"],
+            tips: ["Acidic soil required", "Regular pruning needed", "Pluck 3-4 times yearly"]
+          },
+          {
+            crop: "Jute",
+            confidence: 83,
+            yield: 35,
             profit: 30000,
-            fertilizer: ["Urea 150 kg/hectare", "SSP 125 kg/hectare", "MOP 50 kg/hectare"],
-            tips: ["Ensure water availability", "Transplant in July", "Weed control is essential"]
+            fertilizer: ["Urea 100 kg/hectare", "SSP 80 kg/hectare", "MOP 30 kg/hectare"],
+            tips: ["Sow in March-April", "High humidity required", "Harvest in 4-5 months"]
+          },
+          {
+            crop: "Potato",
+            confidence: 89,
+            yield: 250,
+            profit: 40000,
+            fertilizer: ["Urea 100 kg/hectare", "DAP 120 kg/hectare", "MOP 80 kg/hectare"],
+            tips: ["Plant in October-November", "Cool climate suitable", "Dig in 3-4 months"]
+          },
+          {
+            crop: "Tomato",
+            confidence: 87,
+            yield: 400,
+            profit: 50000,
+            fertilizer: ["Urea 90 kg/hectare", "DAP 100 kg/hectare", "MOP 70 kg/hectare"],
+            tips: ["Transplant in February or July", "Regular irrigation needed", "Pick in 3-4 months"]
           }
         ],
         te: [
           {
+            crop: "వరి",
+            confidence: 90,
+            yield: 55,
+            profit: 32000,
+            fertilizer: ["యూరియా 150 కిలోలు/హెక్టార్", "SSP 125 కిలోలు/హెక్టార్", "MOP 50 కిలోలు/హెక్టార్"],
+            tips: ["నీటి లభ్యత నిర్ధారించండి", "జూన్-జూలైలో మార్పిడి", "కలుపు నియంత్రణ అవసరం"]
+          },
+          {
             crop: "గోధుమలు",
             confidence: 92,
             yield: 45,
-            profit: 25000,
+            profit: 28000,
             fertilizer: ["యూరియా 120 కిలోలు/హెక్టార్", "DAP 100 కిలోలు/హెక్టార్", "MOP 60 కిలోలు/హెక్టార్"],
             tips: ["నవంబర్ రెండవ వారంలో విత్తండి", "21 రోజుల వ్యవధిలో నీరు పెట్టండి", "ఏప్రిల్‌లో కోత"]
           },
           {
-            crop: "వరి",
-            confidence: 87,
-            yield: 55,
+            crop: "పత్తి",
+            confidence: 85,
+            yield: 25,
+            profit: 45000,
+            fertilizer: ["యూరియా 100 కిలోలు/హెక్టార్", "DAP 80 కిలోలు/హెక్టార్", "MOP 80 కిలోలు/హెక్టార్"],
+            tips: ["మే-జూన్‌లో విత్తండి", "పురుగుల నియంత్రణ అవసరం", "క్రమం తప్పకుండా నీరు పెట్టండి"]
+          },
+          {
+            crop: "చెరకు",
+            confidence: 88,
+            yield: 700,
+            profit: 55000,
+            fertilizer: ["యూరియా 200 కిలోలు/హెక్టార్", "SSP 150 కిలోలు/హెక్టార్", "MOP 100 కిలోలు/హెక్టార్"],
+            tips: ["ఫిబ్రవరి-మార్చిలో నాటండి", "తగినంత నీరు అవసరం", "12-14 నెలల్లో కోత"]
+          },
+          {
+            crop: "మొక్కజొన్న",
+            confidence: 86,
+            yield: 50,
+            profit: 26000,
+            fertilizer: ["యూరియా 130 కిలోలు/హెక్టార్", "DAP 90 కిలోలు/హెక్టార్", "MOP 40 కిలోలు/హెక్టార్"],
+            tips: ["జూన్-జూలైలో విత్తండి", "మంచి నీటి నిష్కాసన అవసరం", "3-4 నెలల్లో కోత"]
+          },
+          {
+            crop: "వేరుశెనగ",
+            confidence: 84,
+            yield: 30,
+            profit: 35000,
+            fertilizer: ["యూరియా 50 కిలోలు/హెక్టార్", "SSP 100 కిలోలు/హెక్టార్", "MOP 50 కిలోలు/హెక్టార్"],
+            tips: ["జూన్-జూలైలో విత్తండి", "తేలికపాటి మట్టి అనుకూలం", "4-5 నెలల్లో కోత"]
+          },
+          {
+            crop: "తేయాకు",
+            confidence: 82,
+            yield: 20,
+            profit: 60000,
+            fertilizer: ["యూరియా 80 కిలోలు/హెక్టార్", "SSP 60 కిలోలు/హెక్టార్", "MOP 40 కిలోలు/హెక్టార్"],
+            tips: ["ఆమ్ల మట్టి అవసరం", "క్రమం తప్పకుండా కత్తిరించండి", "సంవత్సరానికి 3-4 సార్లు కోత"]
+          },
+          {
+            crop: "జనపనార",
+            confidence: 83,
+            yield: 35,
             profit: 30000,
-            fertilizer: ["యూరియా 150 కిలోలు/హెక్టార్", "SSP 125 కిలోలు/హెక్టార్", "MOP 50 కిలోలు/హెక్టార్"],
-            tips: ["నీటి లభ్యత నిర్ధారించండి", "జూలైలో మార్పిడి", "కలుపు నియంత్రణ అవసరం"]
+            fertilizer: ["యూరియా 100 కిలోలు/హెక్టార్", "SSP 80 కిలోలు/హెక్టార్", "MOP 30 కిలోలు/హెక్టార్"],
+            tips: ["మార్చి-ఏప్రిల్‌లో విత్తండి", "అధిక తేమ అవసరం", "4-5 నెలల్లో కోత"]
+          },
+          {
+            crop: "బంగాళాదుంప",
+            confidence: 89,
+            yield: 250,
+            profit: 40000,
+            fertilizer: ["యూరియా 100 కిలోలు/హెక్టార్", "DAP 120 కిలోలు/హెక్టార్", "MOP 80 కిలోలు/హెక్టార్"],
+            tips: ["అక్టోబర్-నవంబర్‌లో నాటండి", "చల్లని వాతావరణం అనుకూలం", "3-4 నెలల్లో తవ్వండి"]
+          },
+          {
+            crop: "టమోటా",
+            confidence: 87,
+            yield: 400,
+            profit: 50000,
+            fertilizer: ["యూరియా 90 కిలోలు/హెక్టార్", "DAP 100 కిలోలు/హెక్టార్", "MOP 70 కిలోలు/హెక్టార్"],
+            tips: ["ఫిబ్రవరి లేదా జూలైలో మార్పిడి", "క్రమం తప్పకుండా నీరు పెట్టండి", "3-4 నెలల్లో కోత"]
           }
         ],
         ta: [
           {
+            crop: "அரிசி",
+            confidence: 90,
+            yield: 55,
+            profit: 32000,
+            fertilizer: ["யூரியா 150 கிலோ/ஹெக்டேர்", "SSP 125 கிலோ/ஹெக்டேர்", "MOP 50 கிலோ/ஹெக்டேர்"],
+            tips: ["நீர் கிடைக்கும் தன்மையை உறுதி செய்யவும்", "ஜூன்-ஜூலையில் நடவு", "களை கட்டுப்பாடு அவசியம்"]
+          },
+          {
             crop: "கோதுமை",
             confidence: 92,
             yield: 45,
-            profit: 25000,
+            profit: 28000,
             fertilizer: ["யூரியா 120 கிலோ/ஹெக்டேர்", "DAP 100 கிலோ/ஹெக்டேர்", "MOP 60 கிலோ/ஹெக்டேர்"],
             tips: ["நவம்பர் இரண்டாம் வாரத்தில் விதைக்கவும்", "21 நாள் இடைவெளியில் நீர்ப்பாசனம்", "ஏப்ரலில் அறுவடை"]
           },
           {
-            crop: "அரிசி",
-            confidence: 87,
-            yield: 55,
+            crop: "பருத்தி",
+            confidence: 85,
+            yield: 25,
+            profit: 45000,
+            fertilizer: ["யூரியா 100 கிலோ/ஹெக்டேர்", "DAP 80 கிலோ/ஹெக்டேர்", "MOP 80 கிலோ/ஹெக்டேர்"],
+            tips: ["மே-ஜூன் மாதங்களில் விதைக்கவும்", "பூச்சி கட்டுப்பாடு அவசியம்", "தொடர்ந்து நீர்ப்பாசனம் தேவை"]
+          },
+          {
+            crop: "கரும்பு",
+            confidence: 88,
+            yield: 700,
+            profit: 55000,
+            fertilizer: ["யூரியா 200 கிலோ/ஹெக்டேர்", "SSP 150 கிலோ/ஹெக்டேர்", "MOP 100 கிலோ/ஹெக்டேர்"],
+            tips: ["பிப்ரவரி-மார்ச் மாதங்களில் நடவு", "போதுமான நீர் தேவை", "12-14 மாதங்களில் அறுவடை"]
+          },
+          {
+            crop: "சோளம்",
+            confidence: 86,
+            yield: 50,
+            profit: 26000,
+            fertilizer: ["யூரியா 130 கிலோ/ஹெக்டேர்", "DAP 90 கிலோ/ஹெக்டேர்", "MOP 40 கிலோ/ஹெக்டேர்"],
+            tips: ["ஜூன்-ஜூலையில் விதைக்கவும்", "நல்ல வடிகால் தேவை", "3-4 மாதங்களில் அறுவடை"]
+          },
+          {
+            crop: "நிலக்கடலை",
+            confidence: 84,
+            yield: 30,
+            profit: 35000,
+            fertilizer: ["யூரியா 50 கிலோ/ஹெக்டேர்", "SSP 100 கிலோ/ஹெக்டேர்", "MOP 50 கிலோ/ஹெக்டேர்"],
+            tips: ["ஜூன்-ஜூலையில் விதைக்கவும்", "இலகுவான மண் பொருத்தமானது", "4-5 மாதங்களில் அறுவடை"]
+          },
+          {
+            crop: "தேயிலை",
+            confidence: 82,
+            yield: 20,
+            profit: 60000,
+            fertilizer: ["யூரியா 80 கிலோ/ஹெக்டேர்", "SSP 60 கிலோ/ஹெக்டேர்", "MOP 40 கிலோ/ஹெக்டேர்"],
+            tips: ["அமில மண் தேவை", "தொடர்ந்து கத்தரிக்க வேண்டும்", "ஆண்டுக்கு 3-4 முறை பறிக்கவும்"]
+          },
+          {
+            crop: "சணல்",
+            confidence: 83,
+            yield: 35,
             profit: 30000,
-            fertilizer: ["யூரியா 150 கிலோ/ஹெக்டேர்", "SSP 125 கிலோ/ஹெக்டேர்", "MOP 50 கிலோ/ஹெக்டேர்"],
-            tips: ["நீர் கிடைக்கும் தன்மையை உறுதி செய்யவும்", "ஜூலையில் நடவு", "களை கட்டுப்பாடு அவசியம்"]
+            fertilizer: ["யூரியா 100 கிலோ/ஹெக்டேர்", "SSP 80 கிலோ/ஹெக்டேர்", "MOP 30 கிலோ/ஹெக்டேர்"],
+            tips: ["மார்ச்-ஏப்ரலில் விதைக்கவும்", "அதிக ஈரப்பதம் தேவை", "4-5 மாதங்களில் அறுவடை"]
+          },
+          {
+            crop: "உருளைக்கிழங்கு",
+            confidence: 89,
+            yield: 250,
+            profit: 40000,
+            fertilizer: ["யூரியா 100 கிலோ/ஹெக்டேர்", "DAP 120 கிலோ/ஹெக்டேர்", "MOP 80 கிலோ/ஹெக்டேர்"],
+            tips: ["அக்டோபர்-நவம்பரில் நடவு", "குளிர்ந்த காலநிலை பொருத்தமானது", "3-4 மாதங்களில் அறுவடை"]
+          },
+          {
+            crop: "தக்காளி",
+            confidence: 87,
+            yield: 400,
+            profit: 50000,
+            fertilizer: ["யூரியா 90 கிலோ/ஹெக்டேர்", "DAP 100 கிலோ/ஹெக்டேர்", "MOP 70 கிலோ/ஹெக்டேர்"],
+            tips: ["பிப்ரவரி அல்லது ஜூலையில் நடவு", "தொடர்ந்து நீர்ப்பாசனம் தேவை", "3-4 மாதங்களில் பறிக்கவும்"]
           }
         ]
       };
       
-      const selectedCrop = Math.random() > 0.5 ? crops[language][0] : crops[language][1];
+      // Simple logic to select crop based on input values
+      const n = parseFloat(formData.nitrogen);
+      const p = parseFloat(formData.phosphorus);
+      const k = parseFloat(formData.potassium);
+      const ph = parseFloat(formData.ph);
+      const temp = parseFloat(formData.temperature);
+      const humidity = parseFloat(formData.humidity);
+      
+      let cropIndex = 0;
+      
+      // Basic crop selection logic
+      if (temp >= 20 && temp <= 30 && humidity >= 60 && ph >= 6.0 && ph <= 7.5) {
+        cropIndex = 0; // Rice
+      } else if (temp >= 15 && temp <= 25 && ph >= 6.0 && ph <= 7.5 && n >= 60) {
+        cropIndex = 1; // Wheat
+      } else if (temp >= 25 && temp <= 35 && humidity >= 50 && k >= 150) {
+        cropIndex = 2; // Cotton
+      } else if (temp >= 20 && temp <= 30 && p >= 30 && k >= 100) {
+        cropIndex = 3; // Sugarcane
+      } else if (temp >= 18 && temp <= 28 && humidity <= 70) {
+        cropIndex = 4; // Maize
+      } else if (temp >= 25 && temp <= 35 && humidity >= 40) {
+        cropIndex = 5; // Groundnut
+      } else if (ph >= 5.5 && ph <= 6.5 && temp >= 20 && temp <= 30) {
+        cropIndex = 6; // Tea
+      } else if (temp >= 20 && temp <= 35 && humidity >= 50) {
+        cropIndex = 7; // Jute
+      } else if (temp >= 15 && temp <= 25 && p >= 20) {
+        cropIndex = 8; // Potato
+      } else if (temp >= 20 && temp <= 30 && k >= 100) {
+        cropIndex = 9; // Tomato
+      } else {
+        cropIndex = Math.floor(Math.random() * 10);
+      }
+      
+      const selectedCrop = crops[language][cropIndex];
       setRecommendation(selectedCrop);
       setLoading(false);
     }, 2000);
@@ -743,14 +1041,12 @@ function App() {
           </div>
         </div>
       </div>
-
       {/* Crop Recommendation System */}
       <div className={`${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white'} p-6 rounded-lg shadow-md`}>
         <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-4 flex items-center`}>
           <CheckCircle className="w-6 h-6 text-green-500 mr-2" />
           {t.cropRecommendation}
-        </h2>
-        
+        </h2>      
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
@@ -759,12 +1055,18 @@ function App() {
               </label>
               <input
                 type="number"
+                min="10"
+                max="120"
                 value={formData.nitrogen}
                 onChange={(e) => setFormData({...formData, nitrogen: e.target.value})}
+                onKeyDown={preventInvalidChars}
                 className={`w-full p-2 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'} rounded-md focus:ring-green-500 focus:border-green-500`}
-                placeholder="80"
+                placeholder="10-120"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'hi' ? 'रेंज: 10-120 ppm' : language === 'en' ? 'Range: 10-120 ppm' : language === 'te' ? 'పరిధి: 10-120 ppm' : 'வரம்பு: 10-120 ppm'}
+              </p>
             </div>
             
             <div>
@@ -773,12 +1075,18 @@ function App() {
               </label>
               <input
                 type="number"
+                min="5"
+                max="60"
                 value={formData.phosphorus}
                 onChange={(e) => setFormData({...formData, phosphorus: e.target.value})}
+                onKeyDown={preventInvalidChars}
                 className={`w-full p-2 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'} rounded-md focus:ring-green-500 focus:border-green-500`}
-                placeholder="40"
+                placeholder="5-60"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'hi' ? 'रेंज: 5-60 ppm' : language === 'en' ? 'Range: 5-60 ppm' : language === 'te' ? 'పరిధి: 5-60 ppm' : 'வரம்பு: 5-60 ppm'}
+              </p>
             </div>
             
             <div>
@@ -787,12 +1095,18 @@ function App() {
               </label>
               <input
                 type="number"
+                min="20"
+                max="400"
                 value={formData.potassium}
                 onChange={(e) => setFormData({...formData, potassium: e.target.value})}
+                onKeyDown={preventInvalidChars}
                 className={`w-full p-2 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'} rounded-md focus:ring-green-500 focus:border-green-500`}
-                placeholder="20"
+                placeholder="20-400"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'hi' ? 'रेंज: 20-400 ppm' : language === 'en' ? 'Range: 20-400 ppm' : language === 'te' ? 'పరిధి: 20-400 ppm' : 'வரம்பு: 20-400 ppm'}
+              </p>
             </div>
             
             <div>
@@ -802,12 +1116,18 @@ function App() {
               <input
                 type="number"
                 step="0.1"
+                min="5.0"
+                max="9.0"
                 value={formData.ph}
                 onChange={(e) => setFormData({...formData, ph: e.target.value})}
+                onKeyDown={preventInvalidChars}
                 className={`w-full p-2 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'} rounded-md focus:ring-green-500 focus:border-green-500`}
-                placeholder="6.5"
+                placeholder="5.0-9.0"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'hi' ? 'रेंज: 5.0-9.0' : language === 'en' ? 'Range: 5.0-9.0' : language === 'te' ? 'పరిధి: 5.0-9.0' : 'வரம்பு: 5.0-9.0'}
+              </p>
             </div>
             
             <div>
@@ -816,12 +1136,18 @@ function App() {
               </label>
               <input
                 type="number"
+                min="10"
+                max="45"
                 value={formData.temperature}
                 onChange={(e) => setFormData({...formData, temperature: e.target.value})}
+                onKeyDown={preventInvalidChars}
                 className={`w-full p-2 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'} rounded-md focus:ring-green-500 focus:border-green-500`}
-                placeholder="25"
+                placeholder="10-45"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'hi' ? 'रेंज: 10-45°C' : language === 'en' ? 'Range: 10-45°C' : language === 'te' ? 'పరిధి: 10-45°C' : 'வரம்பு: 10-45°C'}
+              </p>
             </div>
             
             <div>
@@ -830,12 +1156,18 @@ function App() {
               </label>
               <input
                 type="number"
+                min="20"
+                max="95"
                 value={formData.humidity}
                 onChange={(e) => setFormData({...formData, humidity: e.target.value})}
+                onKeyDown={preventInvalidChars}
                 className={`w-full p-2 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'} rounded-md focus:ring-green-500 focus:border-green-500`}
-                placeholder="80"
+                placeholder="20-95"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'hi' ? 'रेंज: 20-95%' : language === 'en' ? 'Range: 20-95%' : language === 'te' ? 'పరిధి: 20-95%' : 'வரம்பு: 20-95%'}
+              </p>
             </div>
             
             <div>
@@ -844,10 +1176,14 @@ function App() {
               </label>
               <input
                 type="number"
+                step="0.1"
+                min="0.1"
+                max="100"
                 value={formData.area}
                 onChange={(e) => setFormData({...formData, area: e.target.value})}
+                onKeyDown={preventInvalidChars}
                 className={`w-full p-2 border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'} rounded-md focus:ring-green-500 focus:border-green-500`}
-                placeholder="2"
+                placeholder="0.1-100"
                 required
               />
             </div>
